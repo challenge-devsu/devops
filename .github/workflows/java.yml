@@ -218,7 +218,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: .
-        file: ./devops/files/Dockerfile-Java17
+        file: ./devops/.github/files/Dockerfile-Java17
         push: true
         tags: ghcr.io/${{ vars.ORG }}/${{ github.event.repository.name }}:${{ needs.setEnv.outputs.pomVersion }}-${{ needs.setEnv.outputs.releaseType }}
         registry: ghcr.io
