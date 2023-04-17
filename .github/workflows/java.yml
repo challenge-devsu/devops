@@ -52,11 +52,13 @@ jobs:
     - name: prints envs global and not global
       env: 
         REPO_SECRET: ${{ secrets.REPO_SECRET }}
+        SECRET_ORG: ${{ secrets.SECRET_ORG }}
         
       run: |
         echo "==> Info: VARIABLE VARIABLE_ORG: ${{ vars.VARIABLE_ORG }}" 
         #REPO_SECRET
-        echo "==> Info: VARIABLE REPO_SECRET: ${REPO_SECRET}"
+        echo "==> Info: VARIABLE REPO_SECRET: $REPO_SECRET"
+        echo "==> Info: VARIABLE SECRET_ORG: $SECRET_ORG"
   build:
     needs: setEnv
     runs-on: ubuntu-latest
