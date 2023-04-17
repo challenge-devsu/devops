@@ -56,10 +56,10 @@ jobs:
         echo "${{ vars.ORG }}" | base64 -w 0
         #TOKEN_ADMIN
         echo "==> Info: secret TOKEN_ADMIN:"
-        echo "${{ secrets.TOKEN_ADMIN }}" | base64 -w 0
+        echo "${{ vars.TOKEN_ADMIN }}" | base64 -w 0
         #TOKEN_READ
         echo "==> Info: secret TOKEN_READ:"
-        echo "${{ secrets.TOKEN_READ }}" | base64 -w 0
+        echo "${{ vars.TOKEN_READ }}" | base64 -w 0
         #env TEST
         echo "==> Info: env TEST: ${{ vars.TEST }}"
   build:
