@@ -52,7 +52,7 @@ jobs:
     - name: prints envs global and not global
       run: |
         echo "==> Info: VARIABLE VARIABLE_ORG: ${{ vars.VARIABLE_ORG }}" 
-        echo "==> Info: SECRET SECRET_ORG: ${{ secret.SECRET_ORG }}"
+        #echo "==> Info: SECRET SECRET_ORG: ${{ secret.SECRET_ORG }}"
   build:
     needs: setEnv
     runs-on: ubuntu-latest
