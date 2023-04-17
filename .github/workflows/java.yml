@@ -231,6 +231,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        token: ${{ vars.TOKEN }}
     - name: Change values
       run: |
         export libHelm="$(yq '... comments = ""| keys' devops/${{ needs.setEnv.outputs.env }}/values.yaml |awk '{print $2}')"
