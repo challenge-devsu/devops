@@ -51,17 +51,8 @@ jobs:
         echo "==> Info: pomVersion=$VERSION"
     - name: prints envs global and not global
       run: |
-        echo "==> Info: secret ORG:"
-        #echo "${{ secrets.ORG }}" | base64 -w 0
-        echo "${{ vars.ORG }}" | base64 -w 0
-        #TOKEN_ADMIN
-        echo "==> Info: secret TOKEN_ADMIN:"
-        echo "${{ vars.TOKEN_ADMIN }}" | base64 -w 0
-        #TOKEN_READ
-        echo "==> Info: secret TOKEN_READ:"
-        echo "${{ vars.TOKEN_READ }}" | base64 -w 0
-        #env TEST
-        echo "==> Info: env TEST: ${{ vars.TEST }}"
+        echo "==> Info: VARIABLE VARIABLE_ORG: ${{ vars.VARIABLE_ORG }}" 
+        echo "==> Info: SECRET SECRET_ORG: ${{ secret.SECRET_ORG }}"
   build:
     needs: setEnv
     runs-on: ubuntu-latest
