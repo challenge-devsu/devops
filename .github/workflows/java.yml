@@ -246,7 +246,7 @@ jobs:
     - name: Commit changes
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: "chore: Update from pipeline values.yaml"
+        commit_message: "chore: Update from pipeline values.yaml [skip ci] "
         commit_options: '--no-verify'
         commit_user_name: matiasgonzalocalvo
         commit_user_email: "matiasgonzalocalvo@gmail.com"
