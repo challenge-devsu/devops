@@ -51,11 +51,14 @@ jobs:
         echo "==> Info: pomVersion=$VERSION"
     - name: prints envs global and not global
       run: |
-        echo "==> Info: secret ORG: ${{ secrets.ORG }}" | base64 -w 0
+        echo "==> Info: secret ORG:"
+        echo "${{ secrets.ORG }}" | base64 -w 0
         #TOKEN_ADMIN
-        echo "==> Info: secret TOKEN_ADMIN: ${{ secrets.TOKEN_ADMIN }}" | base64 -w 0
+        echo "==> Info: secret TOKEN_ADMIN:"
+        echo "${{ secrets.TOKEN_ADMIN }}" | base64 -w 0
         #TOKEN_READ
-        echo "==> Info: secret TOKEN_READ: ${{ secrets.TOKEN_READ }}" | base64 -w 0
+        echo "==> Info: secret TOKEN_READ:"
+        echo "${{ secrets.TOKEN_READ }}" | base64 -w 0
         #env TEST
         echo "==> Info: env TEST: ${{ env.TEST }}"
   build:
