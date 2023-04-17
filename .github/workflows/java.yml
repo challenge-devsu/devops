@@ -7,9 +7,9 @@ on:
       - develop
   workflow_call:
     inputs:
-      holis:
-        description: 'Who to greet'
-        required: true
+      repo:
+        description: 'Who'
+        required: false
         default: 'World'
         type: string
 jobs:
