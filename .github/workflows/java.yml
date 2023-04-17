@@ -231,16 +231,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: print version
-      run: |
-        echo "==> Info: pomVersion: ${{ needs.setEnv.outputs.pomVersion }}"
-        echo "==> Info: releaseType: ${{ needs.setEnv.outputs.releaseType }}"
-        echo "==> Info: env: ${{ needs.setEnv.outputs.env }}"
-        echo "==> Info: env: ${{ needs.setEnv.outputs.env }}"
-        echo "==> Info: github.actor: ${{ github.actor }}"
-        echo "==> Info: github.ref: ${{ github.ref }}"
-    - name: git status
-      run: git status
     - name: Change values
       run: |
         export libHelm="$(yq '... comments = ""| keys' devops/${{ needs.setEnv.outputs.env }}/values.yaml |awk '{print $2}')"
@@ -251,13 +241,11 @@ jobs:
         export date="$(date +%s)"
         pathEnv=".${libHelm}.commonlabels.deploytime" yq -e 'eval(strenv(pathEnv)) = env(date)' -i devops/${{ needs.setEnv.outputs.env }}/values.yaml
         cat devops/${{ needs.setEnv.outputs.env }}/values.yaml
-    - name: git push custom
-      run: |
-        git config --global user.email "matiasgonzalocalvo@gmail.com"
-        git config --global user.name "Matias Gonzalo Calvo"
-        git add devops/${{ needs.setEnv.outputs.env }}/values.yaml
-        git commit -m "chore: Update image version from pipeline [skip ci]"
-        #url from .git/config
-        repo=$(cat .git/config | grep url | awk '{print $3}'|awk -F '/' '{print $NF}')
-        org=$(cat .git/config | grep url | awk '{print $3}'|awk -F '/' '{print $4}')
-        git push https://matiasgonzalocalvo:${{ vars.TOKEN  }}@github.com/${org}/${repo}
+    - name: Commit changes
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: "chore: Update from pipeline values.yaml"
+        commit_options: '--no-verify'
+        commit_user_name: matiasgonzalocalvo
+        commit_user_email: "matiasgonzalocalvo@gmail.com"
+        file_pattern: devops/${{ needs.setEnv.outputs.env }}/values.yaml
