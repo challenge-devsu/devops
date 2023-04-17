@@ -26,11 +26,6 @@ jobs:
       with:
         java-version: '17'
         distribution: 'adopt'
-    - shell: bash
-      env:
-        SUPER_SECRET: ${{ secrets.SECRET_ORG }}
-      run: |
-        echo "==> Info: VARIABLE VARIABLE_ORG: $SUPER_SECRET"
     - name: Release type
       id: get_envs
       run: |
@@ -57,8 +52,8 @@ jobs:
     - name: prints envs global and not global
       run: |
         echo "==> Info: VARIABLE VARIABLE_ORG: ${{ vars.VARIABLE_ORG }}" 
-
-        
+        #REPO_SECRET
+        echo "==> Info: VARIABLE REPO_SECRET: ${{ secrets.REPO_SECRET }}"
   build:
     needs: setEnv
     runs-on: ubuntu-latest
