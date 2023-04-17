@@ -1,0 +1,259 @@
+name: Java CI
+
+on:
+  push:
+    branches: 
+      - main
+      - develop
+  workflow_call:
+    inputs:
+      holis:
+        description: 'Who to greet'
+        required: true
+        default: 'World'
+        type: string
+jobs:
+  setEnv:
+    runs-on: ubuntu-latest
+    outputs:
+      releaseType: ${{ steps.get_envs.outputs.releaseType }}
+      env: ${{ steps.get_envs.outputs.env }}
+      pomVersion: ${{ steps.get_envs.outputs.pomVersion }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK 17
+      uses: actions/setup-java@v2
+      with:
+        java-version: '17'
+        distribution: 'adopt'
+    - name: Release type
+      id: get_envs
+      run: |
+        branch=$(echo ${GITHUB_REF} | awk 'BEGIN { FS = "/" } ; { print $3 }')
+        if [ "$branch" == "develop" ]; then
+          echo "releaseType=SNAPSHOT" >> $GITHUB_ENV
+          echo "releaseType=SNAPSHOT" >> $GITHUB_OUTPUT
+          echo "env=dev" >> $GITHUB_ENV
+          echo "env=dev" >> $GITHUB_OUTPUT
+          echo "==> Info: releaseType=SNAPSHOT"
+          echo "==> Info: env=dev"
+        elif [ "$branch" == "main" ]; then
+          echo "releaseType=RELEASE" >> $GITHUB_ENV
+          echo "releaseType=RELEASE" >> $GITHUB_OUTPUT
+          echo "env=prd" >> $GITHUB_ENV
+          echo "env=prd" >> $GITHUB_OUTPUT
+          echo "==> Info: releaseType=RELEASE"
+          echo "==> Info: env=prd"
+        fi
+        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        echo "pomVersion=$VERSION" >> $GITHUB_ENV
+        echo "pomVersion=$VERSION" >> $GITHUB_OUTPUT
+        echo "==> Info: pomVersion=$VERSION"
+  build:
+    needs: setEnv
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK 17
+      uses: actions/setup-java@v2
+      with:
+        java-version: '17'
+        distribution: 'adopt'
+    - name: Cache Maven dependencies
+      uses: actions/cache@v2
+      with:
+        path: |
+          /home/runner/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+    - name: print version
+      run: |
+        echo "==> Info: pomVersion: ${{ needs.setEnv.outputs.pomVersion }}"
+        echo "==> Info: releaseType: ${{ needs.setEnv.outputs.releaseType }}"
+        echo "==> Info: env: ${{ needs.setEnv.outputs.env }}"
+        echo "==> Info: github.actor: ${{ github.actor }}"
+        echo "==> Info: github.ref: ${{ github.ref }}"
+    - name: Maven Build
+      run: mvn clean install -DskipTests
+    - name: Upload Jar artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: jar
+        path: |
+          target/*.jar
+    - name: Upload Target
+      uses: actions/upload-artifact@v2
+      with:
+        name: target
+        path: |
+          target/
+  test:
+    needs: 
+      - build
+      - setEnv
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK 17
+      uses: actions/setup-java@v2
+      with:
+        java-version: '17'
+        distribution: 'adopt'
+    - name: Restore Maven dependencies from cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          /home/runner/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+    - name: Download target
+      uses: actions/download-artifact@v2
+      with:
+        name: target
+        path: |
+          target/
+    - name: print version
+      run: |
+        echo "==> Info: pomVersion: ${{ needs.setEnv.outputs.pomVersion }}"
+        echo "==> Info: releaseType: ${{ needs.setEnv.outputs.releaseType }}"
+        echo "==> Info: env: ${{ needs.setEnv.outputs.env }}"
+        echo "==> Info: github.actor: ${{ github.actor }}"
+        echo "==> Info: github.ref: ${{ github.ref }}"
+    - name: Maven Test
+    #org.jacoco:jacoco-maven-plugin:prepare-agent test org.jacoco:jacoco-maven-plugin:report -Dspring.profiles.active="devops,test"
+      run: mvn test
+    - name: Upload Test artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: target
+        path: |
+          target
+  sonar:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Restore Maven dependencies from cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            /home/runner/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+    # Comento porque no tengo sonar
+      # - name: Run SonarQube scanner
+      #   uses: sonarsource/sonarqube-scan-action@v1
+      #   with:
+      #     projectBaseDir: .
+      #     sonar-host-url: ${{ secrets.SONAR_HOST_URL }}
+      #     sonar-login: ${{ secrets.SONAR_LOGIN }}
+      - name: mock sonar
+        run: echo "mock sonar"
+  maven_deploy_or_release: 
+    needs: 
+      - test
+      - sonar
+      - build
+      - setEnv
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK 17
+      uses: actions/setup-java@v2
+      with:
+        java-version: '17'
+        distribution: 'adopt'
+    - name: Restore Maven dependencies from cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          /home/runner/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+    - name: Download target
+      uses: actions/download-artifact@v2
+      with:
+        name: target
+        path: |
+          target/
+    - name: Maven Deploy
+      if: github.ref == 'refs/heads/develop'
+      run: echo "mvn deploy -s settings.xml"
+    - name: maven_release
+      if: github.ref == 'refs/heads/main'
+      run: echo "mvn release:prepare -s settings.xml"
+  push_to_docker:
+    needs:
+      - maven_deploy_or_release
+      - setEnv
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        repository: ${{ env.ORG }}/devops
+        ref: main
+        path: devops
+        token: ${{ secrets.TOKEN_READ }}
+    - name: Download jar
+      uses: actions/download-artifact@v2
+      with:
+        name: jar
+        path: |
+          target/
+    - name: print version
+      run: |
+        echo "==> Info: pomVersion: ${{ needs.setEnv.outputs.pomVersion }}"
+        echo "==> Info: releaseType: ${{ needs.setEnv.outputs.releaseType }}"
+        echo "==> Info: env: ${{ needs.setEnv.outputs.env }}"
+        echo "==> Info: github.actor: ${{ github.actor }}"
+        echo "==> Info: github.ref: ${{ github.ref }}"
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: matiasgonzalocalvo
+        password: ${{ secrets.TOKEN_READ }}
+    - name: build docker and push
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: ./devops/files/Dockerfile-Java17
+        push: true
+        tags: ghcr.io/${{ env.ORG }}/${{ github.event.repository.name }}:${{ needs.setEnv.outputs.pomVersion }}-${{ needs.setEnv.outputs.releaseType }}
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.TOKEN_READ }}
+  change_values_helm_repo:
+    needs:
+      - push_to_docker
+      - setEnv
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: print version
+      run: |
+        echo "==> Info: pomVersion: ${{ needs.setEnv.outputs.pomVersion }}"
+        echo "==> Info: releaseType: ${{ needs.setEnv.outputs.releaseType }}"
+        echo "==> Info: env: ${{ needs.setEnv.outputs.env }}"
+        echo "==> Info: env: ${{ needs.setEnv.outputs.env }}"
+        echo "==> Info: github.actor: ${{ github.actor }}"
+        echo "==> Info: github.ref: ${{ github.ref }}"
+    - name: git status
+      run: git status
+    - name: Change values
+      run: |
+        export libHelm="$(yq '... comments = ""| keys' devops/${{ needs.setEnv.outputs.env }}/values.yaml |awk '{print $2}')"
+
+        export tag="${{ needs.setEnv.outputs.pomVersion }}-${{ needs.setEnv.outputs.releaseType }}"
+        pathEnv=".${libHelm}.image.tag" yq -e 'eval(strenv(pathEnv)) = env(tag)' -i devops/${{ needs.setEnv.outputs.env }}/values.yaml
+
+        export date="$(date +%s)"
+        pathEnv=".${libHelm}.commonlabels.deploytime" yq -e 'eval(strenv(pathEnv)) = env(date)' -i devops/${{ needs.setEnv.outputs.env }}/values.yaml
+        cat devops/${{ needs.setEnv.outputs.env }}/values.yaml
+    - name: git push custom
+      run: |
+        git config --global user.email "matiasgonzalocalvo@gmail.com"
+        git config --global user.name "Matias Gonzalo Calvo"
+        git add devops/${{ needs.setEnv.outputs.env }}/values.yaml
+        git commit -m "chore: Update image version from pipeline [skip ci]"
+        #url from .git/config
+        repo=$(cat .git/config | grep url | awk '{print $3}'|awk -F '/' '{print $NF}')
+        org=$(cat .git/config | grep url | awk '{print $3}'|awk -F '/' '{print $4}')
+        git push https://matiasgonzalocalvo:${{ secrets.TOKEN_ADMIN }}@github.com/${org}/${repo}

@@ -1,0 +1,34 @@
+ARG JAVA_VERSION="17"
+ARG JAVA_URL_ID="0d483333a00540d886896bac774ff48b/35"
+
+FROM registry.access.redhat.com/ubi9:9.0.0-1640 AS build
+ARG JAVA_VERSION
+ARG JAVA_URL_ID
+ENV JAVA_PKG="openjdk-${JAVA_VERSION}_linux-x64_bin.tar.gz"
+ENV JAVA_URL="https://download.java.net/java/GA/jdk${JAVA_VERSION}/${JAVA_URL_ID}/GPL/openjdk-${JAVA_VERSION}_linux-x64_bin.tar.gz"
+
+ADD ${JAVA_URL} /opt/
+RUN ls -alth /opt
+RUN tar xzf /opt/${JAVA_PKG} -C /opt
+RUN rm -f /opt/${JAVA_PKG}
+
+
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.0.0-1644
+ARG JAVA_VERSION
+
+ENV JAVA_HOME "/opt/jdk-${JAVA_VERSION}"
+ENV LANG="es_ES.UTF-8"
+ENV LC_ALL="es_ES.UTF-8"
+
+USER root
+COPY --from=build /opt/ /opt/
+COPY ../target/*[^tests].jar ../*-boot/target/*[^tests].jar  /deployments/
+
+RUN microdnf install glibc-all-langpacks -y \
+    && microdnf clean all \
+    && update-alternatives --install /usr/bin/java java ${JAVA_HOME}/bin/java 0 \
+    && update-alternatives --install /usr/bin/javac javac ${JAVA_HOME}/bin/javac 0 \
+    && alternatives --set java ${JAVA_HOME}/bin/java \
+    && alternatives --set javac ${JAVA_HOME}/bin/javac \
+    && update-alternatives --install "/usr/bin/keytool" "keytool" "${JAVA_HOME}/bin/keytool" 0 \
+    && alternatives --set keytool  ${JAVA_HOME}/bin/keytool
