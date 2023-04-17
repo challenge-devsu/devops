@@ -51,7 +51,7 @@ jobs:
         echo "==> Info: pomVersion=$VERSION"
     - name: prints envs global and not global
       env: 
-        REPO_SECRET: ${{ env.REPO_SECRET }}
+        REPO_SECRET: ${{ secret.REPO_SECRET }}
       run: |
         echo "==> Info: VARIABLE VARIABLE_ORG: ${{ vars.VARIABLE_ORG }}" 
         #REPO_SECRET
