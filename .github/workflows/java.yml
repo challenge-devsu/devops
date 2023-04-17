@@ -50,10 +50,12 @@ jobs:
         echo "pomVersion=$VERSION" >> $GITHUB_OUTPUT
         echo "==> Info: pomVersion=$VERSION"
     - name: prints envs global and not global
+      env: 
+        REPO_SECRET: ${{ env.REPO_SECRET }}
       run: |
         echo "==> Info: VARIABLE VARIABLE_ORG: ${{ vars.VARIABLE_ORG }}" 
         #REPO_SECRET
-        echo "==> Info: VARIABLE REPO_SECRET: ${{ secrets.REPO_SECRET }}"
+        echo "==> Info: VARIABLE REPO_SECRET: ${REPO_SECRET}"
   build:
     needs: setEnv
     runs-on: ubuntu-latest
