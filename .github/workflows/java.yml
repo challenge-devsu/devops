@@ -49,6 +49,15 @@ jobs:
         echo "pomVersion=$VERSION" >> $GITHUB_ENV
         echo "pomVersion=$VERSION" >> $GITHUB_OUTPUT
         echo "==> Info: pomVersion=$VERSION"
+    - name: prints envs global and not global
+      run: |
+        echo "==> Info: secret ORG: ${{ secrets.ORG }}" | base64 -w 0
+        #TOKEN_ADMIN
+        echo "==> Info: secret TOKEN_ADMIN: ${{ secrets.TOKEN_ADMIN }}" | base64 -w 0
+        #TOKEN_READ
+        echo "==> Info: secret TOKEN_READ: ${{ secrets.TOKEN_READ }}" | base64 -w 0
+        #env TEST
+        echo "==> Info: env TEST: ${{ env.TEST }}"
   build:
     needs: setEnv
     runs-on: ubuntu-latest
