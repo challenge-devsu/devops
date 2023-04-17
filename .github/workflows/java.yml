@@ -52,6 +52,11 @@ jobs:
     - name: prints envs global and not global
       run: |
         echo "==> Info: VARIABLE VARIABLE_ORG: ${{ vars.VARIABLE_ORG }}" 
+    - shell: bash
+      env:
+        SUPER_SECRET: ${{ secrets.SECRET_ORG }}
+      run: |
+        echo "==> Info: VARIABLE VARIABLE_ORG: $env:SUPER_SECRET"
         
   build:
     needs: setEnv
