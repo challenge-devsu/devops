@@ -22,7 +22,6 @@ ENV LC_ALL="es_ES.UTF-8"
 
 USER root
 COPY --from=build /opt/ /opt/
-COPY ../target/*[^tests].jar ../*-boot/target/*[^tests].jar  /deployments/
 
 RUN microdnf install glibc-all-langpacks -y \
     && microdnf clean all \
@@ -34,5 +33,9 @@ RUN microdnf install glibc-all-langpacks -y \
     && alternatives --set keytool  ${JAVA_HOME}/bin/keytool
 
 
+USER 1001
+COPY ../target/*[^tests].jar ../*-boot/target/*[^tests].jar  /deployments/
+#add permissions to the user in /deployments
+RUN chown -R 1001:0 /deployments && chmod -R g+rw /deployments
 
 ENTRYPOINT ["java", "-jar", "/deployments/*.jar"]
