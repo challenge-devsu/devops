@@ -38,4 +38,5 @@ COPY ../target/*[^tests].jar ../*-boot/target/*[^tests].jar  /deployments/
 #add permissions to the user in /deployments
 RUN chown -R 1001:0 /deployments && chmod -R g+rw /deployments
 
-ENTRYPOINT ["java", "-jar", "/deployments/*.jar"]
+#ENTRYPOINT ["java", "-jar", "/deployments/*.jar"]
+RUN java -jar /deployments/*.jar
