@@ -241,7 +241,7 @@ jobs:
         pathEnv=".${libHelm}.image.tag" yq -e 'eval(strenv(pathEnv)) = env(tag)' -i devops/${{ needs.setEnv.outputs.env }}/values.yaml
 
         export date="$(date +%s)"
-        pathEnv=".${libHelm}.commonlabels.deploytime" yq -e 'eval(strenv(pathEnv)) = "env(date)"' -i devops/${{ needs.setEnv.outputs.env }}/values.yaml
+        pathEnv=".${libHelm}.commonlabels.deploytime" yq -e 'eval(strenv(pathEnv)) = strenv(date)' -i devops/${{ needs.setEnv.outputs.env }}/values.yaml
         cat devops/${{ needs.setEnv.outputs.env }}/values.yaml
     - name: Commit changes
       uses: stefanzweifel/git-auto-commit-action@v4
