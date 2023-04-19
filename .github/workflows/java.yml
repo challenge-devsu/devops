@@ -124,6 +124,10 @@ jobs:
     - name: Maven Test
     #org.jacoco:jacoco-maven-plugin:prepare-agent test org.jacoco:jacoco-maven-plugin:report -Dspring.profiles.active="devops,test"
       run: mvn test
+    - name: Jacoco Report
+      run: echo 'mvn org.jacoco:jacoco-maven-plugin:prepare-agent test org.jacoco:jacoco-maven-plugin:report -Dspring.profiles.active="devops,test"'
+    - name: Junit Report
+      run: echo 'mvn surefire-report:report -Dspring.profiles.active="devops,test"'
     - name: Upload Test artifact
       uses: actions/upload-artifact@v2
       with:
